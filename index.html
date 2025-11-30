@@ -1,0 +1,471 @@
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1" name="viewport" />
+    <title>Gumball: Calculator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+      rel="stylesheet"
+    />
+    <link rel="icon" type="image/x-icon" href="/logo.webp" />
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap");
+      body {
+        font-family: "Press Start 2P", cursive;
+        background-color: #f9f3c9;
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 1rem;
+        transition: background-color 1.5s ease;
+      }
+      button:focus {
+        outline: none;
+      }
+      #explosion-overlay {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        width: 280px;
+        height: 280px;
+        max-width: 90vw;
+        max-height: 90vw;
+        transform: translate(-50%, -50%);
+        background: black;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+        flex-direction: column;
+      }
+      #explosion-overlay.active {
+        opacity: 1;
+        pointer-events: auto;
+      }
+      #explosion-overlay img {
+        width: 100%;
+        height: auto;
+        image-rendering: pixelated;
+        filter: contrast(1.2) brightness(1.1);
+        margin-bottom: 0.5rem;
+      }
+      #explosion-overlay .text {
+        color: #f9f3c9;
+        font-size: 0.75rem;
+        font-family: "Press Start 2P", cursive;
+        text-align: center;
+        user-select: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="calculator"
+      class="w-[280px] rounded-md border border-gray-300 bg-[#d9dbdb] shadow-inner"
+      style="box-shadow: inset 0 0 4px #a0a0a0"
+    >
+      <!-- Title bar -->
+      <div
+        class="flex items-center justify-between px-2 py-1 border-b border-gray-400 bg-[#cfd3d3] text-[#7a7a7a] text-[10px] tracking-widest select-none"
+        style="font-family: &quot;Press Start 2P&quot;, cursive"
+      >
+        <span>CALCULATOR</span>
+        <div class="flex space-x-1">
+          <button
+            class="w-4 h-4 rounded bg-[#a0cfcf] border border-gray-400 text-[#4dbdbd] text-xs leading-none flex items-center justify-center cursor-default"
+            tabindex="-1"
+          >
+            -
+          </button>
+          <button
+            class="w-4 h-4 rounded bg-[#a0cfcf] border border-gray-400 text-[#4dbdbd] text-xs leading-none flex items-center justify-center cursor-default"
+            tabindex="-1"
+          >
+            +
+          </button>
+          <button
+            class="w-4 h-4 rounded bg-[#a0cfcf] border border-gray-400 text-[#4dbdbd] text-xs leading-none flex items-center justify-center cursor-default"
+            tabindex="-1"
+          >
+            ×
+          </button>
+        </div>
+      </div>
+      <!-- Display -->
+      <div
+        id="display"
+        class="h-10 bg-[#c9d1a7] border border-gray-400 rounded-sm m-2 px-2 text-right text-[14px] text-[#4a4a4a] select-none flex items-center justify-end font-bold"
+        style="
+          font-family: &quot;Press Start 2P&quot;, cursive;
+          min-height: 2.5rem;
+        "
+      >
+        0
+      </div>
+      <!-- Buttons grid -->
+      <div
+        class="grid grid-cols-5 gap-1 p-2 relative"
+        style="min-height: 224px"
+      >
+        <button
+          data-action="back"
+          class="bg-[#d9dbdb] border border-gray-400 rounded text-[14px] font-bold text-[#7a7a7a] py-2 px-1 flex items-center justify-center"
+          aria-label="Backspace"
+        >
+          <i class="fas fa-arrow-left"></i>
+        </button>
+        <button
+          data-action="ce"
+          class="bg-[#d9dbdb] border border-gray-400 rounded text-[14px] font-bold text-[#7a7a7a] py-2 px-1"
+        >
+          CE
+        </button>
+        <button
+          data-action="c"
+          class="bg-[#d9dbdb] border border-gray-400 rounded text-[14px] font-bold text-[#7a7a7a] py-2 px-1"
+        >
+          C
+        </button>
+        <button
+          data-value="±"
+          class="bg-[#d9dbdb] border border-gray-400 rounded text-[14px] font-bold text-[#7a7a7a] py-2 px-1"
+        >
+          ±
+        </button>
+        <button
+          data-value="%"
+          class="bg-[#d9dbdb] border border-gray-400 rounded text-[14px] font-bold text-[#7a7a7a] py-2 px-1"
+        >
+          %
+        </button>
+        <button
+          data-value="7"
+          class="bg-[#d9dbdb] border border-gray-400 rounded text-[14px] font-bold text-[#7a7a7a] py-2 px-1"
+        >
+          7
+        </button>
+        <button
+          data-value="8"
+          class="bg-[#d9dbdb] border border-gray-400 rounded text-[14px] font-bold text-[#7a7a7a] py-2 px-1"
+        >
+          8
+        </button>
+        <button
+          data-value="9"
+          class="bg-[#d9dbdb] border border-gray-400 rounded text-[14px] font-bold text-[#7a7a7a] py-2 px-1"
+        >
+          9
+        </button>
+        <button
+          data-value="/"
+          class="bg-[#d9dbdb] border border-gray-400 rounded text-[14px] font-bold text-[#7a7a7a] py-2 px-1"
+        >
+          /
+        </button>
+        <button
+          data-value="("
+          class="bg-[#d9dbdb] border border-gray-400 rounded text-[14px] font-bold text-[#7a7a7a] py-2 px-1"
+        >
+          (
+        </button>
+        <button
+          data-value="4"
+          class="bg-[#d9dbdb] border border-gray-400 rounded text-[14px] font-bold text-[#7a7a7a] py-2 px-1"
+        >
+          4
+        </button>
+        <button
+          data-value="5"
+          class="bg-[#d9dbdb] border border-gray-400 rounded text-[14px] font-bold text-[#7a7a7a] py-2 px-1"
+        >
+          5
+        </button>
+        <button
+          data-value="6"
+          class="bg-[#d9dbdb] border border-gray-400 rounded text-[14px] font-bold text-[#7a7a7a] py-2 px-1"
+        >
+          6
+        </button>
+        <button
+          data-value="*"
+          class="bg-[#d9dbdb] border border-gray-400 rounded text-[14px] font-bold text-[#7a7a7a] py-2 px-1"
+        >
+          X
+        </button>
+        <button
+          data-value=")"
+          class="bg-[#d9dbdb] border border-gray-400 rounded text-[14px] font-bold text-[#7a7a7a] py-2 px-1"
+        >
+          )
+        </button>
+        <button
+          data-value="1"
+          class="bg-[#d9dbdb] border border-gray-400 rounded text-[14px] font-bold text-[#7a7a7a] py-2 px-1"
+        >
+          1
+        </button>
+        <button
+          data-value="2"
+          class="bg-[#d9dbdb] border border-gray-400 rounded text-[14px] font-bold text-[#7a7a7a] py-2 px-1"
+        >
+          2
+        </button>
+        <button
+          data-value="3"
+          class="bg-[#d9dbdb] border border-gray-400 rounded text-[14px] font-bold text-[#7a7a7a] py-2 px-1"
+        >
+          3
+        </button>
+        <button
+          data-value="-"
+          class="bg-[#d9dbdb] border border-gray-400 rounded text-[14px] font-bold text-[#7a7a7a] py-2 px-1"
+        >
+          -
+        </button>
+        <!-- Equals button vertical spanning 2 rows -->
+        <button
+          data-action="equals"
+          class="bg-[#d9dbdb] border border-gray-400 rounded text-[14px] font-bold text-[#7a7a7a] py-2 px-1 row-span-2 flex items-center justify-center"
+          style="height: calc(2 * (2.5rem + 0.25rem) - 0.25rem)"
+        >
+          =
+        </button>
+        <button
+          data-value="0"
+          class="col-span-2 bg-[#d9dbdb] border border-gray-400 rounded text-[14px] font-bold text-[#7a7a7a] py-2 px-1"
+        >
+          0
+        </button>
+        <button
+          data-value="."
+          class="bg-[#d9dbdb] border border-gray-400 rounded text-[14px] font-bold text-[#7a7a7a] py-2 px-1"
+        >
+          .
+        </button>
+        <button
+          data-value="+"
+          class="bg-[#d9dbdb] border border-gray-400 rounded text-[14px] font-bold text-[#7a7a7a] py-2 px-1"
+        >
+          +
+        </button>
+      </div>
+    </div>
+
+    <div id="explosion-overlay" aria-hidden="true">
+      <img
+        src="https://media.tenor.com/5acZjLl1OTAAAAAi/explosion-deltarune.gif"
+        alt="Low quality pixelated explosion animation gif"
+        draggable="false"
+      />
+      <div class="text">Lights are going out...</div>
+    </div>
+
+    <script>
+      (() => {
+        const display = document.getElementById("display");
+        const calculator = document.getElementById("calculator");
+        const explosionOverlay = document.getElementById("explosion-overlay");
+
+        let currentInput = "0";
+        let storedValue = null;
+        let storedOperator = null;
+        let resetInputOnNextDigit = false;
+
+        // Update display text safely
+        function updateDisplay(text) {
+          display.textContent = text;
+        }
+
+        // Clear all
+        function clearAll() {
+          currentInput = "0";
+          storedValue = null;
+          storedOperator = null;
+          resetInputOnNextDigit = false;
+          updateDisplay(currentInput);
+        }
+
+        // Clear entry (CE) - clear current input only
+        function clearEntry() {
+          currentInput = "0";
+          updateDisplay(currentInput);
+        }
+
+        // Backspace - remove last character from current input
+        function backspace() {
+          if (resetInputOnNextDigit) return; // ignore backspace if waiting for new input
+          if (
+            currentInput.length === 1 ||
+            (currentInput.length === 2 && currentInput.startsWith("-"))
+          ) {
+            currentInput = "0";
+          } else {
+            currentInput = currentInput.slice(0, -1);
+          }
+          updateDisplay(currentInput);
+        }
+
+        // Perform calculation with storedValue, storedOperator, and currentInput
+        function calculate() {
+          if (storedOperator === null || storedValue === null) return;
+          let a = parseFloat(storedValue);
+          let b = parseFloat(currentInput);
+          let result = 0;
+          switch (storedOperator) {
+            case "+":
+              result = a + b;
+              break;
+            case "-":
+              result = a - b;
+              break;
+            case "*":
+              result = a * b;
+              break;
+            case "/":
+              if (b === 0) {
+                explodeCalculator();
+                return null;
+              }
+              result = a / b;
+              break;
+            case "%":
+              result = a % b;
+              break;
+            default:
+              result = b;
+          }
+          // Round to max 10 decimals
+          result = Math.round(result * 1e10) / 1e10;
+          return result.toString();
+        }
+
+        // Explosion effect with GIF and lights off
+        function explodeCalculator() {
+          // Show explosion overlay
+          explosionOverlay.classList.add("active");
+          // Dim background (body)
+          document.body.style.backgroundColor = "#000";
+
+          // Hide calculator after short delay (to show explosion)
+          setTimeout(() => {
+            calculator.style.display = "none";
+          }, 1200);
+
+          // After explosion and lights off, remove overlay and restore background after delay
+          setTimeout(() => {
+            explosionOverlay.classList.remove("active");
+            document.body.style.backgroundColor = "#f9f3c9";
+            alert("💥 Boom! The calculator exploded!");
+          }, 4000);
+        }
+
+        // Handle button clicks
+        function onButtonClick(e) {
+          const btn = e.target.closest("button");
+          if (!btn) return;
+          if (calculator.style.display === "none") return; // disable input if exploded
+
+          const action = btn.getAttribute("data-action");
+          const value = btn.getAttribute("data-value");
+
+          if (action === "back") {
+            backspace();
+            return;
+          }
+          if (action === "ce") {
+            clearEntry();
+            return;
+          }
+          if (action === "c") {
+            clearAll();
+            return;
+          }
+          if (action === "equals") {
+            if (storedOperator !== null) {
+              const result = calculate();
+              if (result === null) return; // exploded
+              currentInput = result;
+              updateDisplay(currentInput);
+              storedValue = null;
+              storedOperator = null;
+              resetInputOnNextDigit = true;
+            }
+            return;
+          }
+          if (value) {
+            // Handle ± button: toggle sign of current input
+            if (value === "±") {
+              if (currentInput === "0") return;
+              if (currentInput.startsWith("-")) {
+                currentInput = currentInput.slice(1);
+              } else {
+                currentInput = "-" + currentInput;
+              }
+              updateDisplay(currentInput);
+              return;
+            }
+            // Handle % as operator (modulus) or percentage of current input
+            if (value === "%") {
+              if (storedOperator !== null) {
+                const result = calculate();
+                if (result === null) return; // exploded
+                currentInput = result;
+                updateDisplay(currentInput);
+                storedValue = currentInput;
+                storedOperator = "%";
+                resetInputOnNextDigit = true;
+                return;
+              } else {
+                let num = parseFloat(currentInput);
+                num = num / 100;
+                currentInput = num.toString();
+                updateDisplay(currentInput);
+                return;
+              }
+            }
+            // If value is operator (+, -, *, /)
+            if (["+", "-", "*", "/"].includes(value)) {
+              storedValue = currentInput;
+              storedOperator = value;
+              currentInput = "";
+              updateDisplay("");
+              resetInputOnNextDigit = false;
+              return;
+            }
+            // If digit or dot
+            if (/[0-9.]/.test(value)) {
+              if (resetInputOnNextDigit) {
+                currentInput = "";
+                resetInputOnNextDigit = false;
+              }
+              // Prevent multiple dots
+              if (value === "." && currentInput.includes(".")) return;
+              // Prevent leading zeros (except "0." case)
+              if (currentInput === "0") {
+                currentInput = value === "." ? "0." : value;
+              } else {
+                currentInput += value;
+              }
+              updateDisplay(currentInput || "0");
+              return;
+            }
+          }
+        }
+
+        // Attach event listener
+        document.querySelectorAll("button").forEach((btn) => {
+          btn.addEventListener("click", onButtonClick);
+        });
+
+        // Initialize display
+        clearAll();
+      })();
+    </script>
+  </body>
+</html>
